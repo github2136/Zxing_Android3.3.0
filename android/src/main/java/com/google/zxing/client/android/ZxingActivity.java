@@ -13,7 +13,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
@@ -31,6 +30,10 @@ import java.util.List;
 
 public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
     public static final String KEY_RESULT = "RESULT";
+    public static final String KEY_SCAN_WIDTH_PX = "SCAN_WIDTH_PX";
+    public static final String KEY_SCAN_HEIGHT_PX = "SCAN_HEIGHT_PX";
+    public static final String KEY_SCAN_WIDTH_DP = "SCAN_WIDTH_DP";
+    public static final String KEY_SCAN_HEIGHT_DP = "SCAN_HEIGHT_DP";
     private SurfaceView surfaceView;
     private ViewfinderView vView;
     private ImageButton ibFlash;
@@ -51,6 +54,21 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         ibFlash = (ImageButton) findViewById(R.id.ib_flash);
         ibFlash.setOnClickListener(mOnClickListener);
 //        iv = (ImageView) findViewById(R.id.iv);
+
+        if (getIntent().hasExtra(KEY_SCAN_WIDTH_PX) && getIntent().hasExtra(KEY_SCAN_HEIGHT_PX)) {
+            int width = getIntent().getIntExtra(KEY_SCAN_WIDTH_PX, 600);
+            int height = getIntent().getIntExtra(KEY_SCAN_HEIGHT_PX, 600);
+            vView.setScanWidthPx(width);
+            vView.setScanHeightPx(height);
+            vView.reset();
+        } else if (getIntent().hasExtra(KEY_SCAN_WIDTH_DP) && getIntent().hasExtra(KEY_SCAN_HEIGHT_DP)) {
+            int width = getIntent().getIntExtra(KEY_SCAN_WIDTH_DP, 200);
+            int height = getIntent().getIntExtra(KEY_SCAN_HEIGHT_DP, 200);
+            vView.setScanWidthDp(width);
+            vView.setScanHeightDp(height);
+            vView.reset();
+        }
+
         hasSurface = false;
 
         surfaceView = (SurfaceView) findViewById(R.id.preview_view);
@@ -123,9 +141,9 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
         //裁剪框图片
         PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, w, h,
-                (w - vView.getScanningWidth()) / 2,
-                (h - vView.getScanningHeight()) / 2,
-                vView.getScanningWidth(), vView.getScanningHeight(), false);
+                (w - vView.getScanWidthPx()) / 2,
+                (h - vView.getScanHeightPx()) / 2,
+                vView.getScanWidthPx(), vView.getScanHeightPx(), false);
         //显示裁剪框图片
   /*      int[] pixels = source.renderThumbnail();
         int width = source.getThumbnailWidth();

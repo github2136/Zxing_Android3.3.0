@@ -21,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, ZxingActivity.class);
+                intent.putExtra(ZxingActivity.KEY_SCAN_WIDTH_DP,300);
+                intent.putExtra(ZxingActivity.KEY_SCAN_HEIGHT_DP,300);
                 startActivityForResult(intent, 1);
             }
         });
