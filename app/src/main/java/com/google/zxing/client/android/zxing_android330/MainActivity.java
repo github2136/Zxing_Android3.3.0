@@ -1,6 +1,8 @@
 package com.google.zxing.client.android.zxing_android330;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -21,8 +23,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, ZxingActivity.class);
-                intent.putExtra(ZxingActivity.KEY_SCAN_WIDTH_DP,300);
-                intent.putExtra(ZxingActivity.KEY_SCAN_HEIGHT_DP,300);
+                intent.putExtra(ZxingActivity.KEY_SCAN_WIDTH_DP, 300);
+                intent.putExtra(ZxingActivity.KEY_SCAN_HEIGHT_DP, 300);
+                intent.putExtra(ZxingActivity.KEY_SCAN_HEIGHT_SCALE, 0.0);
+                intent.putExtra(ZxingActivity.KEY_SCAN_COLOR, ResourcesCompat.getColor(getResources(),R.color.colorPrimary,null));
                 startActivityForResult(intent, 1);
             }
         });

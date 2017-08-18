@@ -3,6 +3,7 @@ package com.google.zxing.client.android;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -34,6 +35,8 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     public static final String KEY_SCAN_HEIGHT_PX = "SCAN_HEIGHT_PX";
     public static final String KEY_SCAN_WIDTH_DP = "SCAN_WIDTH_DP";
     public static final String KEY_SCAN_HEIGHT_DP = "SCAN_HEIGHT_DP";
+    public static final String KEY_SCAN_HEIGHT_SCALE = "SCAN_HEIGHT_SCALE";
+    public static final String KEY_SCAN_COLOR = "SCAN_COLOR";
     private SurfaceView surfaceView;
     private ViewfinderView vView;
     private ImageButton ibFlash;
@@ -60,14 +63,19 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             int height = getIntent().getIntExtra(KEY_SCAN_HEIGHT_PX, 600);
             vView.setScanWidthPx(width);
             vView.setScanHeightPx(height);
-            vView.reset();
         } else if (getIntent().hasExtra(KEY_SCAN_WIDTH_DP) && getIntent().hasExtra(KEY_SCAN_HEIGHT_DP)) {
             int width = getIntent().getIntExtra(KEY_SCAN_WIDTH_DP, 200);
             int height = getIntent().getIntExtra(KEY_SCAN_HEIGHT_DP, 200);
             vView.setScanWidthDp(width);
             vView.setScanHeightDp(height);
-            vView.reset();
         }
+        if (getIntent().hasExtra(KEY_SCAN_COLOR)) {
+            vView.setScanColor(getIntent().getIntExtra(KEY_SCAN_COLOR, Color.BLUE));
+        }
+        if (getIntent().hasExtra(KEY_SCAN_HEIGHT_SCALE)) {
+            vView.setHeightScale(getIntent().getDoubleExtra(KEY_SCAN_HEIGHT_SCALE, 0.5));
+        }
+        vView.reset();
 
         hasSurface = false;
 
@@ -141,9 +149,9 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
         //裁剪框图片
         PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, w, h,
-                (w - vView.getScanWidthPx()) / 2,
-                (h - vView.getScanHeightPx()) / 2,
-                vView.getScanWidthPx(), vView.getScanHeightPx(), false);
+                (int) ((w - vView.getScanHeightPx()) * vView.getHeightScale()),
+                (h - vView.getScanWidthPx()) / 2,
+                vView.getScanHeightPx(), vView.getScanWidthPx(), false);
         //显示裁剪框图片
   /*      int[] pixels = source.renderThumbnail();
         int width = source.getThumbnailWidth();

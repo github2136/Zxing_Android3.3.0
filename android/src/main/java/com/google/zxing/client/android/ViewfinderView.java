@@ -5,16 +5,23 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
 public final class ViewfinderView extends View {
-
+    //空白高度比例0.0-1.0
+    private double heightScale = 0.5;
+    //扫描框宽度DP
     private int scanWidthDp = 200;
+    //扫描框高度DP
     private int scanHeightDp = 200;
-
+    //扫描框宽度PX
     private int scanWidthPx;
+    //扫描框高度PX
     private int scanHeightPx;
+    //扫描框颜色
+    private int scanColor;
     private Paint paint;
     private final int maskColor;
 
@@ -50,11 +57,27 @@ public final class ViewfinderView extends View {
         this.scanHeightPx = scanHeightPx;
     }
 
+    public double getHeightScale() {
+        return heightScale;
+    }
+
+    public void setHeightScale(double heightScale) {
+        this.heightScale = heightScale;
+    }
+
+    public int getScanColor() {
+        return scanColor;
+    }
+
+    public void setScanColor(int scanColor) {
+        this.scanColor = scanColor;
+    }
+
     public ViewfinderView(Context context, AttributeSet attrs) {
         super(context, attrs);
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        Resources resources = getResources();
-        maskColor = resources.getColor(R.color.viewfinder_mask);
+        maskColor = ResourcesCompat.getColor(getResources(), R.color.viewfinder_mask, null);
+        scanColor = Color.BLUE;
         reset();
     }
 
@@ -72,7 +95,7 @@ public final class ViewfinderView extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(maskColor);
         int spaceWidth = (width - scanWidthPx) / 2;
-        int spaceHeight = (height - scanHeightPx) / 2;
+        int spaceHeight = (int) ((height - scanHeightPx) * heightScale);
 
         canvas.drawRect(0, 0, width, spaceHeight, paint);
         canvas.drawRect(0,
@@ -93,11 +116,11 @@ public final class ViewfinderView extends View {
 
 
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLUE);
+        paint.setColor(scanColor);
         canvas.drawRect((width - scanWidthPx) / 2,
-                (height - scanHeightPx) / 2,
+                spaceHeight,
                 (width - scanWidthPx) / 2 + scanWidthPx,
-                (height - scanHeightPx) / 2 + scanHeightPx,
+                spaceHeight + scanHeightPx,
                 paint);
 
         paint.setColor(Color.WHITE);
