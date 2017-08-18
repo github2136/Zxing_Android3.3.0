@@ -8,6 +8,8 @@ intent.putExtra(ZxingActivity.KEY_SCAN_WIDTH_DP,300);
 intent.putExtra(ZxingActivity.KEY_SCAN_HEIGHT_DP,300);
 intent.putExtra(ZxingActivity.KEY_SCAN_WIDTH_PX,300);
 intent.putExtra(ZxingActivity.KEY_SCAN_HEIGHT_PX,300);
+intent.putExtra(ZxingActivity.KEY_SCAN_HEIGHT_SCALE, 0.0);//边框位置控制0.0-1.0
+intent.putExtra(ZxingActivity.KEY_SCAN_COLOR, ResourcesCompat.getColor(getResources(),R.color.colorPrimary,null));//边框颜色设置，默认为Color.BLUE
 startActivityForResult(intent, 1);
 
 ```
