@@ -13,9 +13,9 @@ public final class ViewfinderView extends View {
     //空白高度比例0.0-1.0
     private double heightScale = 0.5;
     //扫描框宽度DP
-    private int scanWidthDp = 200;
+    private int scanWidthDp;
     //扫描框高度DP
-    private int scanHeightDp = 200;
+    private int scanHeightDp;
     //扫描框宽度PX
     private int scanWidthPx;
     //扫描框高度PX
@@ -83,8 +83,12 @@ public final class ViewfinderView extends View {
 
     public void reset() {
         float density = getResources().getDisplayMetrics().density;
-        scanWidthPx = (int) (scanWidthDp * density);
-        scanHeightPx = (int) (scanHeightDp * density);
+        if (scanWidthDp != 0) {
+            scanWidthPx = (int) (scanWidthDp * density);
+        }
+        if (scanWidthDp != 0) {
+            scanHeightPx = (int) (scanWidthDp * density);
+        }
         invalidate();
     }
 
