@@ -10,6 +10,7 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -29,10 +30,8 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,14 +49,15 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     private SurfaceView surfaceView;
     private ViewfinderView vView;
     private ImageButton ibFlash;
-    private ImageView iv;
+    private ImageView iv;//结果图
     private Camera camera;
     private Camera.Size bestSize;
     private boolean hasSurface;
     private AutoFocusManager autoFocusManager;//自动对焦类
     private MultiFormatReader multiFormatReader;//解码类
     private BeepManager beepManager;
-    private Map<DecodeHintType, Object> hints;
+    private Map<DecodeHintType, Object> hints;//解码类型
+    private boolean mRotation = false;//结果图旋转
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +69,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         ibFlash.setOnClickListener(mOnClickListener);
         iv = (ImageView) findViewById(R.id.iv);
 
-        initHints();
+//        initHints();
         if (getIntent().hasExtra(KEY_SCAN_WIDTH_PX) && getIntent().hasExtra(KEY_SCAN_HEIGHT_PX)) {
             int width = getIntent().getIntExtra(KEY_SCAN_WIDTH_PX, 600);
             int height = getIntent().getIntExtra(KEY_SCAN_HEIGHT_PX, 600);
@@ -103,26 +103,30 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
 
     private void initHints() {
         hints = new HashMap<>();
-        Set<BarcodeFormat> decodeFormats;
-        decodeFormats = EnumSet.noneOf(BarcodeFormat.class);
-        Set<BarcodeFormat> PRODUCT_FORMATS = EnumSet.of(BarcodeFormat.UPC_A,
-                BarcodeFormat.UPC_E,
-                BarcodeFormat.EAN_13,
-                BarcodeFormat.EAN_8,
-                BarcodeFormat.RSS_14,
-                BarcodeFormat.RSS_EXPANDED);
-        decodeFormats.addAll(PRODUCT_FORMATS);
-        Set<BarcodeFormat> INDUSTRIAL_FORMATS = EnumSet.of(BarcodeFormat.CODE_39,
-                BarcodeFormat.CODE_93,
-                BarcodeFormat.CODE_128,
-                BarcodeFormat.ITF,
-                BarcodeFormat.CODABAR);
-        decodeFormats.addAll(INDUSTRIAL_FORMATS);
-        Set<BarcodeFormat> QR_CODE_FORMATS = EnumSet.of(BarcodeFormat.QR_CODE);
-        decodeFormats.addAll(QR_CODE_FORMATS);
-        Set<BarcodeFormat> DATA_MATRIX_FORMATS = EnumSet.of(BarcodeFormat.DATA_MATRIX);
-        decodeFormats.addAll(DATA_MATRIX_FORMATS);
+        Set<BarcodeFormat> decodeFormats = new HashSet<>();
+
+        decodeFormats.add(BarcodeFormat.UPC_A);
+        decodeFormats.add(BarcodeFormat.UPC_E);
+        decodeFormats.add(BarcodeFormat.EAN_13);
+        decodeFormats.add(BarcodeFormat.EAN_8);
+        decodeFormats.add(BarcodeFormat.RSS_14);
+        decodeFormats.add(BarcodeFormat.RSS_EXPANDED);
+
+        decodeFormats.add(BarcodeFormat.CODE_39);
+        decodeFormats.add(BarcodeFormat.CODE_93);
+        decodeFormats.add(BarcodeFormat.CODE_128);
+        decodeFormats.add(BarcodeFormat.ITF);
+        decodeFormats.add(BarcodeFormat.CODABAR);
+
+        decodeFormats.add(BarcodeFormat.QR_CODE);
+
+        decodeFormats.add(BarcodeFormat.DATA_MATRIX);
+
         hints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
+//        是否使用HARDER模式来解析数据，如果启用，则会花费更多的时间去解析二维码，对精度有优化，对速度则没有。
+//        hints.put(DecodeHintType.TRY_HARDER, true);
+//        解析的字符集。这个对解析也比较关键，最好定义需要解析数据对应的字符集。
+//        hints.put(DecodeHintType.CHARACTER_SET, "");
     }
 
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {
@@ -146,8 +150,10 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
 
     @Override
     protected void onResume() {
+        Log.e("tag","onResume");
         super.onResume();
         if (hasSurface) {
+            Log.e("tag","hasSurface");
             SurfaceHolder surfaceHolder = surfaceView.getHolder();
             openCamera(surfaceHolder);
         }
@@ -155,10 +161,13 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
 
     @Override
     protected void onPause() {
+        Log.e("tag","onpause");
         super.onPause();
         ibFlash.setImageResource(R.drawable.zxing_ic_flash_off);
         if (camera != null) {
+            camera.stopPreview();
             camera.setPreviewCallback(null);
+            // 释放相机资源
             camera.release();
             camera = null;
         }
@@ -179,46 +188,75 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         Camera.Size size = camera.getParameters().getPreviewSize(); //获取预览大小
-        final int w = size.width;  //宽度
-        final int h = size.height;
-        if (sourceScale == 0) {
-            sourceScale = h / (float) getResources().getDisplayMetrics().widthPixels;
+//        int w;  //宽度
+//        int h;
+//        byte[] b;
+//        if (mRotation) {
+//            w = size.height;  //宽度
+//            h = size.width;
+//            b = roate90YUVdata(data, size);
+//        } else {
+//            w = size.width;  //宽度
+//            h = size.height;
+//            b = data;
+//        }
+//        if (sourceScale == 0) {
+//            sourceScale = w / (float) getResources().getDisplayMetrics().widthPixels;
+//        }
+//        //获取预览图片，预览图片为横向显示
+//      /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
+//        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
+//        image.compressToJpeg(new Rect(0, 0, scanningWidth, scanningHeight), 100, os);
+//        byte[] tmp = os.toByteArray();
+//        Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
+//
+//
+//        //裁剪框图片
+//        PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(b, w, h,
+//                (int) ((w - vView.getScanWidthPx() * sourceScale) / 2),
+//                (int) ((h - vView.getScanHeightPx() * sourceScale) * vView.getHeightScale()),
+//                (int) (vView.getScanWidthPx() * sourceScale),
+//                (int) (vView.getScanHeightPx() * sourceScale), false);
+//
+//
+//        if (iv.getVisibility() == View.VISIBLE) {
+//            //显示裁剪框图片
+//            int[] pixels = source.renderThumbnail();
+//            int width = source.getThumbnailWidth();
+//            int height = source.getThumbnailHeight();
+//            Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
+//            iv.setImageBitmap(bitmap1);
+//        }
+//        Result rawResult = null;
+//
+//        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+//
+//        try {
+//            rawResult = multiFormatReader.decodeWithState(bitmap);
+//        } catch (ReaderException re) {
+//        } finally {
+//            multiFormatReader.reset();
+//        }
+//
+//        if (rawResult != null) {
+//            beepManager.playBeepSoundAndVibrate();
+//            Intent intent = new Intent();
+//            intent.putExtra(KEY_RESULT, rawResult.toString());
+//            setResult(RESULT_OK, intent);
+//            finish();
+//        }
+    }
+
+    public static byte[] roate90YUVdata(byte[] yuvData, Camera.Size size) {
+        byte[] rotatedData = new byte[yuvData.length];
+        for (int y = 0; y < size.height; y++) {
+            for (int x = 0; x < size.width; x++)
+                rotatedData[x * size.height + size.height - y - 1] = yuvData[x + y * size.width];
         }
-        //获取预览图片，预览图片为横向显示
-      /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
-        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
-        image.compressToJpeg(new Rect(0, 0, scanningWidth, scanningHeight), 100, os);
-        byte[] tmp = os.toByteArray();
-        Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
-        //裁剪框图片
-        PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, w, h,
-                (int) ((w - vView.getScanHeightPx() * sourceScale) * vView.getHeightScale()),
-                (int) ((h - vView.getScanWidthPx() * sourceScale) / 2),
-                (int) (vView.getScanHeightPx() * sourceScale),
-                (int) (vView.getScanWidthPx() * sourceScale), false);
-        //显示裁剪框图片
-        int[] pixels = source.renderThumbnail();
-        int width = source.getThumbnailWidth();
-        int height = source.getThumbnailHeight();
-        Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
-        iv.setImageBitmap(bitmap1);
-        Result rawResult = null;
-        if (source != null) {
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-            try {
-                rawResult = multiFormatReader.decodeWithState(bitmap);
-            } catch (ReaderException re) {
-            } finally {
-                multiFormatReader.reset();
-            }
-        }
-        if (rawResult != null) {
-            beepManager.playBeepSoundAndVibrate();
-            Intent intent = new Intent();
-            intent.putExtra(KEY_RESULT, rawResult.toString());
-            setResult(RESULT_OK, intent);
-            finish();
-        }
+        int tmp = size.width;
+        size.width = size.height;
+        size.height = tmp;
+        return rotatedData;
     }
 
     @Override
@@ -394,7 +432,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         return point;
     }
 
-    public static void setCameraDisplayOrientation(Activity activity, int cameraId, Camera camera) {
+    public void setCameraDisplayOrientation(Activity activity, int cameraId, Camera camera) {
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(cameraId, info);
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
@@ -420,6 +458,11 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             result = (360 - result) % 360;  // compensate the mirror
         } else {  // back-facing
             result = (info.orientation - degrees + 360) % 360;
+        }
+        if (result == 90 || result == 270) {
+            mRotation = true;
+        } else {
+            mRotation = false;
         }
         camera.setDisplayOrientation(result);
     }
