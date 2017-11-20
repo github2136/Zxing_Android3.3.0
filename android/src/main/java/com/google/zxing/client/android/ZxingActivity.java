@@ -3,6 +3,7 @@ package com.google.zxing.client.android;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.hardware.Camera;
@@ -16,8 +17,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.ReaderException;
@@ -25,9 +29,15 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
     public static final String KEY_RESULT = "RESULT";
@@ -40,13 +50,14 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     private SurfaceView surfaceView;
     private ViewfinderView vView;
     private ImageButton ibFlash;
-    //    private ImageView iv;
+    private ImageView iv;
     private Camera camera;
     private Camera.Size bestSize;
     private boolean hasSurface;
     private AutoFocusManager autoFocusManager;//自动对焦类
     private MultiFormatReader multiFormatReader;//解码类
     private BeepManager beepManager;
+    private Map<DecodeHintType, Object> hints;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +67,9 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         vView = (ViewfinderView) findViewById(R.id.vv_view);
         ibFlash = (ImageButton) findViewById(R.id.ib_flash);
         ibFlash.setOnClickListener(mOnClickListener);
-//        iv = (ImageView) findViewById(R.id.iv);
+        iv = (ImageView) findViewById(R.id.iv);
 
+        initHints();
         if (getIntent().hasExtra(KEY_SCAN_WIDTH_PX) && getIntent().hasExtra(KEY_SCAN_HEIGHT_PX)) {
             int width = getIntent().getIntExtra(KEY_SCAN_WIDTH_PX, 600);
             int height = getIntent().getIntExtra(KEY_SCAN_HEIGHT_PX, 600);
@@ -85,7 +97,32 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         holder.addCallback(this);
 
         multiFormatReader = new MultiFormatReader();
+        multiFormatReader.setHints(hints);
         beepManager = new BeepManager(this);
+    }
+
+    private void initHints() {
+        hints = new HashMap<>();
+        Set<BarcodeFormat> decodeFormats;
+        decodeFormats = EnumSet.noneOf(BarcodeFormat.class);
+        Set<BarcodeFormat> PRODUCT_FORMATS = EnumSet.of(BarcodeFormat.UPC_A,
+                BarcodeFormat.UPC_E,
+                BarcodeFormat.EAN_13,
+                BarcodeFormat.EAN_8,
+                BarcodeFormat.RSS_14,
+                BarcodeFormat.RSS_EXPANDED);
+        decodeFormats.addAll(PRODUCT_FORMATS);
+        Set<BarcodeFormat> INDUSTRIAL_FORMATS = EnumSet.of(BarcodeFormat.CODE_39,
+                BarcodeFormat.CODE_93,
+                BarcodeFormat.CODE_128,
+                BarcodeFormat.ITF,
+                BarcodeFormat.CODABAR);
+        decodeFormats.addAll(INDUSTRIAL_FORMATS);
+        Set<BarcodeFormat> QR_CODE_FORMATS = EnumSet.of(BarcodeFormat.QR_CODE);
+        decodeFormats.addAll(QR_CODE_FORMATS);
+        Set<BarcodeFormat> DATA_MATRIX_FORMATS = EnumSet.of(BarcodeFormat.DATA_MATRIX);
+        decodeFormats.addAll(DATA_MATRIX_FORMATS);
+        hints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
     }
 
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {
@@ -136,11 +173,17 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         }
     }
 
+    //预览图与屏幕比例
+    private float sourceScale = 0;
+
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         Camera.Size size = camera.getParameters().getPreviewSize(); //获取预览大小
         final int w = size.width;  //宽度
         final int h = size.height;
+        if (sourceScale == 0) {
+            sourceScale = h / (float) getResources().getDisplayMetrics().widthPixels;
+        }
         //获取预览图片，预览图片为横向显示
       /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
         ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
@@ -149,15 +192,16 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
         //裁剪框图片
         PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, w, h,
-                (int) ((w - vView.getScanHeightPx()) * vView.getHeightScale()),
-                (h - vView.getScanWidthPx()) / 2,
-                vView.getScanHeightPx(), vView.getScanWidthPx(), false);
+                (int) ((w - vView.getScanHeightPx() * sourceScale) * vView.getHeightScale()),
+                (int) ((h - vView.getScanWidthPx() * sourceScale) / 2),
+                (int) (vView.getScanHeightPx() * sourceScale),
+                (int) (vView.getScanWidthPx() * sourceScale), false);
         //显示裁剪框图片
-  /*      int[] pixels = source.renderThumbnail();
+        int[] pixels = source.renderThumbnail();
         int width = source.getThumbnailWidth();
         int height = source.getThumbnailHeight();
         Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
-        iv.setImageBitmap(bitmap1);*/
+        iv.setImageBitmap(bitmap1);
         Result rawResult = null;
         if (source != null) {
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
