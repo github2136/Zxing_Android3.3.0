@@ -1,7 +1,6 @@
 package com.google.zxing.client.android;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -87,7 +86,7 @@ public final class ViewfinderView extends View {
             scanWidthPx = (int) (scanWidthDp * density);
         }
         if (scanWidthDp != 0) {
-            scanHeightPx = (int) (scanWidthDp * density);
+            scanHeightPx = (int) (scanHeightDp * density);
         }
         invalidate();
     }
