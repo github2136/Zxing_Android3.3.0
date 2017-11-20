@@ -157,6 +157,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             SurfaceHolder surfaceHolder = surfaceView.getHolder();
             openCamera(surfaceHolder);
         }
+        surfaceView.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -180,6 +181,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             autoFocusManager.stop();
             autoFocusManager = null;
         }
+        surfaceView.setVisibility(View.GONE);
     }
 
     //预览图与屏幕比例

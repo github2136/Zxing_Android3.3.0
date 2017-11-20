@@ -4,6 +4,7 @@
     android:id="@+id/activity_camera"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000"
     android:orientation="vertical">
 
     <FrameLayout
@@ -29,6 +30,7 @@
             android:layout_marginBottom="15dp"
             android:background="@android:color/transparent"
             android:src="@drawable/zxing_ic_flash_off"/>
+
         <ImageView
             android:id="@+id/iv"
             android:layout_width="wrap_content"
