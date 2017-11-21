@@ -1,9 +1,9 @@
 # Zxing_Android3.3.0
 [![](https://jitpack.io/v/github2136/Zxing_Android3.3.0.svg)](https://jitpack.io/#github2136/Zxing_Android3.3.0)  
 本功能基于zxing3.3.0开发，除了zxing的core、android-core，使用少量代码实现二维码扫描功能，扫描界面为竖屏，扫描框默认200dp*200dp。
-如需要做图片识别需要添加
-**compile 'com.github.github2136:Android-utils:ba2f38b4f2'**
-**compile 'com.google.code.gson:gson:2.7'**
+如需要做图片识别需要添加  
+**compile 'com.github.github2136:Android-utils:ba2f38b4f2'**  
+**compile 'com.google.code.gson:gson:2.7'**  
 ```
 Intent intent = new Intent(this, ZxingActivity.class);
 //设置扫描框尺寸，宽高必须成对设置否则无效，如果同时设置DP和PX以PX为准
