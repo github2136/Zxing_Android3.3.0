@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_camera"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -22,18 +23,35 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
-        <ImageButton
-            android:id="@+id/ib_flash"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center|bottom"
             android:layout_marginBottom="15dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/zxing_ic_flash_off"/>
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/ib_flash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:src="@drawable/zxing_ic_flash_off"/>
+
+            <ImageButton
+                android:id="@+id/ib_scanning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/zxing_ic_scanning"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/iv"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
     </FrameLayout>
 </LinearLayout>
