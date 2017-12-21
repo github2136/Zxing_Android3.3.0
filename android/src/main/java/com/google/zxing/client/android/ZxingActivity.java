@@ -313,13 +313,13 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
 
     private void startPreview(SurfaceHolder holder) {
         Camera.Parameters parameters = camera.getParameters();
-        int[] fps = new int[]{0, 0};
-        for (int[] i : parameters.getSupportedPreviewFpsRange()) {
-            if (fps[0] <= i[0] && fps[1] <= i[1]) {
-                fps = i;
-            }
-        }
-        parameters.setPreviewFpsRange(fps[0], fps[1]);
+//        int[] fps = new int[]{0, 0};
+//        for (int[] i : parameters.getSupportedPreviewFpsRange()) {
+//            if (fps[0] <= i[0] && fps[1] <= i[1]) {
+//                fps = i;
+//            }
+//        }
+//        parameters.setPreviewFpsRange(fps[0], fps[1]);
         parameters.setPreviewSize(bestSize.width, bestSize.height);
 
         camera.setParameters(parameters);
