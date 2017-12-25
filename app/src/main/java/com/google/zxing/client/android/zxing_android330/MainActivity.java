@@ -1,13 +1,12 @@
 package com.google.zxing.client.android.zxing_android330;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 
 import com.google.zxing.client.android.ZxingActivity;
 
@@ -27,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(ZxingActivity.ARG_SCAN_WIDTH_DP, 200);
                 intent.putExtra(ZxingActivity.ARG_SCAN_HEIGHT_DP, 200);
                 intent.putExtra(ZxingActivity.ARG_SCAN_PIC, true);
+//                intent.putExtra(ZxingActivity.ARG_SCAN_HEIGHT_SCALE, 0d);
                 intent.putExtra(ZxingActivity.ARG_SCAN_COLOR, ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
                 startActivityForResult(intent, 1);
             }
