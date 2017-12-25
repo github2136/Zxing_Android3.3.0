@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
@@ -24,24 +26,13 @@ import android.widget.Toast;
 
 import com.github2136.util.BitmapUtil;
 import com.github2136.util.FileUtil;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.PlanarYUVLuminanceSource;
-import com.google.zxing.RGBLuminanceSource;
-import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.common.GlobalHistogramBinarizer;
-import com.google.zxing.common.HybridBinarizer;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
@@ -54,6 +45,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     public static final String ARG_SCAN_HEIGHT_SCALE = "SCAN_HEIGHT_SCALE";
     public static final String ARG_SCAN_COLOR = "SCAN_COLOR";
     private static final int REQUEST_SELECT_IMG = 249;
+    public static final int MSG_RESULT = 869;
     private Context mContext;
     private SurfaceView surfaceView;
     private ViewfinderView vView;
@@ -63,11 +55,12 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     private Camera.Size bestSize;
     private boolean hasSurface;
     private AutoFocusManager autoFocusManager;//自动对焦类
-    private MultiFormatReader multiFormatReader;//解码类
     private BeepManager beepManager;
-    private Map<DecodeHintType, Object> hints;//解码类型
+
     private boolean mRotation = false;//结果图旋转
     private Set<String> mMimeType = new HashSet<>();
+    private DecodeThread mDecodeThread;
+    private ResultHandler mResultHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,8 +77,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         ibFlash.setOnClickListener(mOnClickListener);
         ibScanning.setOnClickListener(mOnClickListener);
         iv = (ImageView) findViewById(R.id.iv);
-
-//        initHints();
+        beepManager = new BeepManager(this);
         if (getIntent().hasExtra(ARG_SCAN_WIDTH_PX) && getIntent().hasExtra(ARG_SCAN_HEIGHT_PX)) {
             int width = getIntent().getIntExtra(ARG_SCAN_WIDTH_PX, 600);
             int height = getIntent().getIntExtra(ARG_SCAN_HEIGHT_PX, 600);
@@ -115,38 +107,9 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         SurfaceHolder holder = surfaceView.getHolder();
         holder.setKeepScreenOn(true);
         holder.addCallback(this);
-
-        multiFormatReader = new MultiFormatReader();
-        multiFormatReader.setHints(hints);
-        beepManager = new BeepManager(this);
-    }
-
-    private void initHints() {
-        hints = new HashMap<>();
-        Set<BarcodeFormat> decodeFormats = new HashSet<>();
-
-        decodeFormats.add(BarcodeFormat.UPC_A);
-        decodeFormats.add(BarcodeFormat.UPC_E);
-        decodeFormats.add(BarcodeFormat.EAN_13);
-        decodeFormats.add(BarcodeFormat.EAN_8);
-        decodeFormats.add(BarcodeFormat.RSS_14);
-        decodeFormats.add(BarcodeFormat.RSS_EXPANDED);
-
-        decodeFormats.add(BarcodeFormat.CODE_39);
-        decodeFormats.add(BarcodeFormat.CODE_93);
-        decodeFormats.add(BarcodeFormat.CODE_128);
-        decodeFormats.add(BarcodeFormat.ITF);
-        decodeFormats.add(BarcodeFormat.CODABAR);
-
-        decodeFormats.add(BarcodeFormat.QR_CODE);
-
-        decodeFormats.add(BarcodeFormat.DATA_MATRIX);
-
-        hints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
-//        是否使用HARDER模式来解析数据，如果启用，则会花费更多的时间去解析二维码，对精度有优化，对速度则没有。
-//        hints.put(DecodeHintType.TRY_HARDER, true);
-//        解析的字符集。这个对解析也比较关键，最好定义需要解析数据对应的字符集。
-//        hints.put(DecodeHintType.CHARACTER_SET, "");
+        mResultHandler = new ResultHandler(this);
+        mDecodeThread = new DecodeThread(mContext, mResultHandler);
+        mDecodeThread.start();
     }
 
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {
@@ -208,81 +171,17 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         }
     }
 
-    //预览图与屏幕比例
-    private float sourceScale = 0;
-
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         Camera.Size size = camera.getParameters().getPreviewSize(); //获取预览大小
-        int w;  //宽度
-        int h;
-        byte[] b;
-        if (mRotation) {
-            w = size.height;  //宽度
-            h = size.width;
-            b = roate90YUVdata(data, size);
-        } else {
-            w = size.width;  //宽度
-            h = size.height;
-            b = data;
+        DecodeHandler decodeHandler = mDecodeThread.getHandler();
+        if (decodeHandler != null) {
+            Point resultSize = new Point(vView.getScanWidthPx(), vView.getScanHeightPx());
+            Point position = new Point(vView.getScanLeft(), vView.getScanTop());
+            decodeHandler.setSize(resultSize, position);
+            Message message = decodeHandler.obtainMessage(DecodeHandler.MSG_DECODE, size.width, size.height, data);
+            message.sendToTarget();
         }
-        if (sourceScale == 0) {
-            sourceScale = w / (float) getResources().getDisplayMetrics().widthPixels;
-        }
-        //获取预览图片，预览图片为横向显示
-      /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
-        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
-        image.compressToJpeg(new Rect(0, 0, scanningWidth, scanningHeight), 100, os);
-        byte[] tmp = os.toByteArray();
-        Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
-
-
-        //裁剪框图片
-        PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(b, w, h,
-                (int) ((w - vView.getScanWidthPx() * sourceScale) / 2),
-                (int) ((h - vView.getScanHeightPx() * sourceScale) * vView.getHeightScale()),
-                (int) (vView.getScanWidthPx() * sourceScale),
-                (int) (vView.getScanHeightPx() * sourceScale), false);
-
-
-        if (iv.getVisibility() == View.VISIBLE) {
-            //显示裁剪框图片
-            int[] pixels = source.renderThumbnail();
-            int width = source.getThumbnailWidth();
-            int height = source.getThumbnailHeight();
-            Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
-            iv.setImageBitmap(bitmap1);
-        }
-        Result rawResult = null;
-
-        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-
-        try {
-            rawResult = multiFormatReader.decodeWithState(bitmap);
-        } catch (ReaderException re) {
-        } finally {
-            multiFormatReader.reset();
-        }
-
-        if (rawResult != null) {
-            beepManager.playBeepSoundAndVibrate();
-            Intent intent = new Intent();
-            intent.putExtra(ARG_RESULT, rawResult.toString());
-            setResult(RESULT_OK, intent);
-            finish();
-        }
-    }
-
-    public static byte[] roate90YUVdata(byte[] yuvData, Camera.Size size) {
-        byte[] rotatedData = new byte[yuvData.length];
-        for (int y = 0; y < size.height; y++) {
-            for (int x = 0; x < size.width; x++)
-                rotatedData[x * size.height + size.height - y - 1] = yuvData[x + y * size.width];
-        }
-        int tmp = size.width;
-        size.width = size.height;
-        size.height = tmp;
-        return rotatedData;
     }
 
     @Override
@@ -305,21 +204,14 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (beepManager != null) {
             beepManager.close();
         }
-        super.onDestroy();
     }
 
     private void startPreview(SurfaceHolder holder) {
         Camera.Parameters parameters = camera.getParameters();
-//        int[] fps = new int[]{0, 0};
-//        for (int[] i : parameters.getSupportedPreviewFpsRange()) {
-//            if (fps[0] <= i[0] && fps[1] <= i[1]) {
-//                fps = i;
-//            }
-//        }
-//        parameters.setPreviewFpsRange(fps[0], fps[1]);
         parameters.setPreviewSize(bestSize.width, bestSize.height);
 
         camera.setParameters(parameters);
@@ -519,6 +411,34 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         return defaultId;
     }
 
+    static class ResultHandler extends Handler {
+        WeakReference<ZxingActivity> weakReference;
+
+        public ResultHandler(ZxingActivity activity) {
+            weakReference = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            ZxingActivity activity = weakReference.get();
+            if (activity != null) {
+                switch (msg.what) {
+                    case MSG_RESULT:
+                        if (msg.obj != null) {
+                            activity.beepManager.playBeepSoundAndVibrate();
+                            Intent intent = new Intent();
+                            intent.putExtra(ARG_RESULT, msg.obj.toString());
+                            activity.setResult(RESULT_OK, intent);
+                            activity.finish();
+                        } else {
+                            Toast.makeText(activity, "未扫描到数据", Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
@@ -535,7 +455,11 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
                                 .get(new BitmapUtil.BitmapGetCallBack() {
                                          @Override
                                          public void callback(Bitmap bitmap) {
-                                             scanningImage(bitmap);
+                                             DecodeHandler decodeHandler = mDecodeThread.getHandler();
+                                             if (decodeHandler != null) {
+                                                 Message message = decodeHandler.obtainMessage(DecodeHandler.MSG_SCANNINGIMAGE, bitmap);
+                                                 message.sendToTarget();
+                                             }
                                          }
                                      }
                                 );
@@ -544,40 +468,6 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
                         Toast.makeText(this, "非图片类型文件(jpg、png、gif)", Toast.LENGTH_SHORT).show();
                     }
                     break;
-            }
-        }
-    }
-
-    private void scanningImage(Bitmap scanBitmap) {
-        Result result = null;
-        RGBLuminanceSource source = null;
-        try {
-            int width = scanBitmap.getWidth();
-            int height = scanBitmap.getHeight();
-            int[] pixels = new int[width * height];
-            scanBitmap.getPixels(pixels, 0, width, 0, 0, width, height);
-            source = new RGBLuminanceSource(width, height, pixels);
-            result = multiFormatReader.decode(new BinaryBitmap(new HybridBinarizer(source)));
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (source != null) {
-                try {
-                    result = multiFormatReader.decode(new BinaryBitmap(new GlobalHistogramBinarizer(source)));
-                } catch (Throwable e2) {
-                    e2.printStackTrace();
-                }
-            }
-
-        } finally {
-            multiFormatReader.reset();
-            if (result != null) {
-                beepManager.playBeepSoundAndVibrate();
-                Intent intent = new Intent();
-                intent.putExtra(ARG_RESULT, result.toString());
-                setResult(RESULT_OK, intent);
-                finish();
-            } else {
-                Toast.makeText(mContext, "未扫描到数据", Toast.LENGTH_SHORT).show();
             }
         }
     }
