@@ -56,8 +56,6 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     private boolean hasSurface;
     private AutoFocusManager autoFocusManager;//自动对焦类
     private BeepManager beepManager;
-
-    private boolean mRotation = false;//结果图旋转
     private Set<String> mMimeType = new HashSet<>();
     private DecodeThread mDecodeThread;
     private ResultHandler mResultHandler;
@@ -77,7 +75,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         ibFlash.setOnClickListener(mOnClickListener);
         ibScanning.setOnClickListener(mOnClickListener);
         iv = (ImageView) findViewById(R.id.iv);
-        beepManager = new BeepManager(this);
+
         if (getIntent().hasExtra(ARG_SCAN_WIDTH_PX) && getIntent().hasExtra(ARG_SCAN_HEIGHT_PX)) {
             int width = getIntent().getIntExtra(ARG_SCAN_WIDTH_PX, 600);
             int height = getIntent().getIntExtra(ARG_SCAN_HEIGHT_PX, 600);
@@ -107,6 +105,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         SurfaceHolder holder = surfaceView.getHolder();
         holder.setKeepScreenOn(true);
         holder.addCallback(this);
+        beepManager = new BeepManager(this);
         mResultHandler = new ResultHandler(this);
         mDecodeThread = new DecodeThread(mContext, mResultHandler);
         mDecodeThread.start();
@@ -380,11 +379,6 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             result = (360 - result) % 360;  // compensate the mirror
         } else {  // back-facing
             result = (info.orientation - degrees + 360) % 360;
-        }
-        if (result == 90 || result == 270) {
-            mRotation = true;
-        } else {
-            mRotation = false;
         }
         camera.setDisplayOrientation(result);
     }
