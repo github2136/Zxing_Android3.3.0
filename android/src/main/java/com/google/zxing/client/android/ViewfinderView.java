@@ -23,6 +23,10 @@ public final class ViewfinderView extends View {
     private int scanTop;
     //扫描框左边距离PX
     private int scanLeft;
+    //屏幕宽度
+    private int scanWidth;
+    //屏幕高度
+    private int scanHeight;
     //扫描框颜色
     private int scanColor;
     private Paint paint;
@@ -48,16 +52,8 @@ public final class ViewfinderView extends View {
         return scanWidthPx;
     }
 
-    public void setScanWidthPx(int scanWidthPx) {
-        this.scanWidthPx = scanWidthPx;
-    }
-
     public int getScanHeightPx() {
         return scanHeightPx;
-    }
-
-    public void setScanHeightPx(int scanHeightPx) {
-        this.scanHeightPx = scanHeightPx;
     }
 
     public double getHeightScale() {
@@ -84,6 +80,14 @@ public final class ViewfinderView extends View {
         return scanLeft;
     }
 
+    public int getScanWidth() {
+        return scanWidth;
+    }
+
+    public int getScanHeight() {
+        return scanHeight;
+    }
+
     public ViewfinderView(Context context, AttributeSet attrs) {
         super(context, attrs);
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -107,6 +111,8 @@ public final class ViewfinderView extends View {
     public void onDraw(Canvas canvas) {
         int width = canvas.getWidth();
         int height = canvas.getHeight();
+        scanWidth = width;
+        scanHeight = height;
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(maskColor);
         int spaceWidth = (width - scanWidthPx) / 2;

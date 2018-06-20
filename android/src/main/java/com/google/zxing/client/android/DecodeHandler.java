@@ -35,7 +35,7 @@ public class DecodeHandler extends Handler {
     private Handler mResultHandler;
     private Point mSize;//裁剪后的尺寸
     private Point mPosition;//裁剪后的尺寸
-
+    private Point mScanSize;//屏幕尺寸
 
     public DecodeHandler(Context context, Handler resultHandler) {
         mContext = context;
@@ -43,12 +43,12 @@ public class DecodeHandler extends Handler {
         initHints();
         multiFormatReader = new MultiFormatReader();
         multiFormatReader.setHints(hints);
-
     }
 
-    public void setSize(Point resultSize, Point position) {
+    public void setSize(Point resultSize, Point position, Point scanSize) {
         mSize = resultSize;
         mPosition = position;
+        mScanSize = scanSize;
     }
 
     private void initHints() {
@@ -93,7 +93,7 @@ public class DecodeHandler extends Handler {
 //                byte[] date   =    roate90YUVdata((byte[]) msg.obj, msg.arg1, msg.arg2);
 
                 if (sourceScale == 0) {
-                    sourceScale = height / (float) mContext.getResources().getDisplayMetrics().widthPixels;
+                    sourceScale = height / Float.valueOf(mScanSize.x);
                 }
                 //获取预览图片，预览图片为横向显示
       /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
@@ -110,14 +110,16 @@ public class DecodeHandler extends Handler {
                         (int) (mSize.x * sourceScale),
                         (int) (mSize.y * sourceScale),
                         false);
-//                if (iv.getVisibility() == View.VISIBLE) {
-//                    //显示裁剪框图片
-//                    int[] pixels = source.renderThumbnail();
-//                    int width = source.getThumbnailWidth();
-//                    int height = source.getThumbnailHeight();
-//                    Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
-//                    iv.setImageBitmap(bitmap1);
-//                }
+                if (false) {
+                    //显示裁剪框图片
+                    int[] pixels = source.renderThumbnail();
+                    int width1 = source.getThumbnailWidth();
+                    int height1 = source.getThumbnailHeight();
+                    Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width1, width1, height1, Bitmap.Config.ARGB_8888);
+                    Message message = mResultHandler.obtainMessage(ZxingActivity.MSG_RESULT_IMG);
+                    message.obj = bitmap1;
+                    message.sendToTarget();
+                }
                 Result rawResult = null;
 
                 BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
