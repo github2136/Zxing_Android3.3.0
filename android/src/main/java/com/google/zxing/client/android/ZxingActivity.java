@@ -38,14 +38,13 @@ import java.util.Set;
 public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
     public static final String ARG_RESULT = "RESULT";
     public static final String ARG_SCAN_PIC = "SCAN_PIC";
-    public static final String ARG_SCAN_WIDTH_PX = "SCAN_WIDTH_PX";
-    public static final String ARG_SCAN_HEIGHT_PX = "SCAN_HEIGHT_PX";
     public static final String ARG_SCAN_WIDTH_DP = "SCAN_WIDTH_DP";
     public static final String ARG_SCAN_HEIGHT_DP = "SCAN_HEIGHT_DP";
     public static final String ARG_SCAN_HEIGHT_SCALE = "SCAN_HEIGHT_SCALE";
     public static final String ARG_SCAN_COLOR = "SCAN_COLOR";
     private static final int REQUEST_SELECT_IMG = 249;
     public static final int MSG_RESULT = 869;
+    public static final int MSG_RESULT_IMG = 464;//图片结果
     private Context mContext;
     private SurfaceView surfaceView;
     private ViewfinderView vView;
@@ -76,12 +75,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         ibScanning.setOnClickListener(mOnClickListener);
         iv = (ImageView) findViewById(R.id.iv);
 
-        if (getIntent().hasExtra(ARG_SCAN_WIDTH_PX) && getIntent().hasExtra(ARG_SCAN_HEIGHT_PX)) {
-            int width = getIntent().getIntExtra(ARG_SCAN_WIDTH_PX, 600);
-            int height = getIntent().getIntExtra(ARG_SCAN_HEIGHT_PX, 600);
-            vView.setScanWidthPx(width);
-            vView.setScanHeightPx(height);
-        } else if (getIntent().hasExtra(ARG_SCAN_WIDTH_DP) && getIntent().hasExtra(ARG_SCAN_HEIGHT_DP)) {
+        if (getIntent().hasExtra(ARG_SCAN_WIDTH_DP) && getIntent().hasExtra(ARG_SCAN_HEIGHT_DP)) {
             int width = getIntent().getIntExtra(ARG_SCAN_WIDTH_DP, 200);
             int height = getIntent().getIntExtra(ARG_SCAN_HEIGHT_DP, 200);
             vView.setScanWidthDp(width);
@@ -177,7 +171,8 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         if (decodeHandler != null) {
             Point resultSize = new Point(vView.getScanWidthPx(), vView.getScanHeightPx());
             Point position = new Point(vView.getScanLeft(), vView.getScanTop());
-            decodeHandler.setSize(resultSize, position);
+            Point scanSize = new Point(vView.getScanWidth(), vView.getScanHeight());
+            decodeHandler.setSize(resultSize, position, scanSize);
             Message message = decodeHandler.obtainMessage(DecodeHandler.MSG_DECODE, size.width, size.height, data);
             message.sendToTarget();
         }
@@ -428,6 +423,15 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
                             Toast.makeText(activity, "未扫描到数据", Toast.LENGTH_SHORT).show();
                         }
                         break;
+                    case MSG_RESULT_IMG: {
+                        if (msg.obj != null) {
+                            Bitmap bitmap = (Bitmap) msg.obj;
+                            if (activity.iv.getVisibility() == View.VISIBLE) {
+                                activity.iv.setImageBitmap(bitmap);
+                            }
+                        }
+                    }
+                    break;
                 }
             }
         }

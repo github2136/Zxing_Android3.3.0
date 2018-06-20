@@ -9,8 +9,6 @@ Intent intent = new Intent(this, ZxingActivity.class);
 //设置扫描框尺寸，宽高必须成对设置否则无效，如果同时设置DP和PX以PX为准
 intent.putExtra(ZxingActivity.AEG_SCAN_WIDTH_DP,300);
 intent.putExtra(ZxingActivity.AEG_SCAN_HEIGHT_DP,300);
-intent.putExtra(ZxingActivity.AEG_SCAN_WIDTH_PX,300);
-intent.putExtra(ZxingActivity.AEG_SCAN_HEIGHT_PX,300);
 intent.putExtra(ZxingActivity.ARG_SCAN_PIC,true);//是否开启图片扫描
 intent.putExtra(ZxingActivity.AEG_SCAN_HEIGHT_SCALE, 0.0);//边框位置控制0.0-1.0
 intent.putExtra(ZxingActivity.AEG_SCAN_COLOR, ResourcesCompat.getColor(getResources(),R.color.colorPrimary,null));//边框颜色设置，默认为Color.BLUE
