@@ -18,8 +18,8 @@
         android:layout_height="wrap_content"
         android:text="二维码扫描"/>
 
-    <TextView
-        android:id="@+id/tv_1"
+    <EditText
+        android:id="@+id/et_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 </LinearLayout>

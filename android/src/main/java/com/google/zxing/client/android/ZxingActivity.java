@@ -158,7 +158,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             SurfaceHolder surfaceHolder = surfaceView.getHolder();
             surfaceHolder.removeCallback(this);
         }
-        if (autoFocusManager != null) {
+        if (camera != null && autoFocusManager != null) {
             autoFocusManager.stop();
             autoFocusManager = null;
         }

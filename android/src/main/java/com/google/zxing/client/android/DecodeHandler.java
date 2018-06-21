@@ -160,6 +160,9 @@ public class DecodeHandler extends Handler {
                     }
 
                 } finally {
+                    if (scanBitmap != null && !scanBitmap.isRecycled()) {
+                        scanBitmap.recycle();
+                    }
                     multiFormatReader.reset();
                     if (result != null) {
                         Message message = mResultHandler.obtainMessage(ZxingActivity.MSG_RESULT);
