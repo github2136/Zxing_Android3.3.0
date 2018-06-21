@@ -6,19 +6,20 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.EditText;
 
 import com.google.zxing.client.android.ZxingActivity;
 
+
 public class MainActivity extends AppCompatActivity {
-    TextView tv1;
+    EditText et1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button btn1 = (Button) findViewById(R.id.btn_1);
-        tv1 = (TextView) findViewById(R.id.tv_1);
+        et1 = (EditText) findViewById(R.id.et_1);
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            tv1.setText(data.getStringExtra(ZxingActivity.ARG_RESULT));
+            et1.setText(data.getStringExtra(ZxingActivity.ARG_RESULT));
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
