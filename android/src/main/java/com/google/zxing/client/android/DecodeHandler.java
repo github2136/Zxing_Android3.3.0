@@ -86,15 +86,41 @@ public class DecodeHandler extends Handler {
     public void handleMessage(Message msg) {
         switch (msg.what) {
             case MSG_DECODE: {
-                int width = msg.arg1;//预览图片宽度
-                int height = msg.arg2;//预览图片高度
-                byte[] date = (byte[]) msg.obj;
+                int width;
+                int height;
+                byte[] date;
+                //裁剪框图片
+                PlanarYUVLuminanceSource source;
+//                if (msg.arg1 > msg.arg2) {
+//                    //横屏
+//                    width = msg.arg2;//预览图片宽度
+//                    height = msg.arg1;//预览图片高度
+//                    date = roate90YUVdata((byte[]) msg.obj, msg.arg1, msg.arg2);
+//                    if (sourceScale == 0) {
+//                        sourceScale = height / Float.valueOf(mScanSize.y);
+//                    }
+//                    source = new PlanarYUVLuminanceSource(date, width, height,
+//                            (int) (mPosition.x * sourceScale),
+//                            (int) (mPosition.y * sourceScale),
+//                            (int) (mSize.x * sourceScale),
+//                            (int) (mSize.y * sourceScale),
+//                            false);
+//                    date = null;
+//                } else {
+                    width = msg.arg1;//预览图片宽度
+                    height = msg.arg2;//预览图片高度
+                    date = (byte[]) msg.obj;
+                    if (sourceScale == 0) {
+                        sourceScale = height / Float.valueOf(mScanSize.x);
+                    }
+                    source = new PlanarYUVLuminanceSource(date, width, height,
+                            (int) (mPosition.y * sourceScale),
+                            (int) (mPosition.x * sourceScale),
+                            (int) (mSize.x * sourceScale),
+                            (int) (mSize.y * sourceScale),
+                            false);
+//                }
 
-//                byte[] date   =    roate90YUVdata((byte[]) msg.obj, msg.arg1, msg.arg2);
-
-                if (sourceScale == 0) {
-                    sourceScale = height / Float.valueOf(mScanSize.x);
-                }
                 //获取预览图片，预览图片为横向显示
       /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
         ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
@@ -102,14 +128,6 @@ public class DecodeHandler extends Handler {
         byte[] tmp = os.toByteArray();
         Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
 
-
-                //裁剪框图片
-                PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(date, width, height,
-                        (int) (mPosition.y * sourceScale),
-                        (int) (mPosition.x * sourceScale),
-                        (int) (mSize.x * sourceScale),
-                        (int) (mSize.y * sourceScale),
-                        false);
                 if (false) {
                     //显示裁剪框图片
                     int[] pixels = source.renderThumbnail();
