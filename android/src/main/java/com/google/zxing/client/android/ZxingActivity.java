@@ -202,28 +202,31 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_SELECT_IMG:
-                    String p = FileUtil.getFileAbsolutePath(this, data.getData());
-                    String suffix = FileUtil.getSuffix(p);
-                    //获取文件后缀
-                    MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-                    if (mMimeType.contains(mimeTypeMap.getMimeTypeFromExtension(suffix))) {
-                        BitmapUtil
-                                .getInstance(p)
-                                .limit(1080)
-                                .get(new BitmapUtil.BitmapGetCallBack() {
-                                         @Override
-                                         public void callback(Bitmap bitmap) {
-                                             DecodeHandler decodeHandler = mDecodeThread.getHandler();
-                                             if (decodeHandler != null) {
-                                                 Message message = decodeHandler.obtainMessage(DecodeHandler.MSG_SCANNINGIMAGE, bitmap);
-                                                 message.sendToTarget();
+                    try {
+                        String p = FileUtil.getFileAbsolutePath(this, data.getData());
+                        String suffix = FileUtil.getSuffix(p);
+                        //获取文件后缀
+                        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+                        if (mMimeType.contains(mimeTypeMap.getMimeTypeFromExtension(suffix))) {
+                            BitmapUtil
+                                    .getInstance(p)
+                                    .limit(1080)
+                                    .get(new BitmapUtil.BitmapGetCallBack() {
+                                             @Override
+                                             public void callback(Bitmap bitmap) {
+                                                 DecodeHandler decodeHandler = mDecodeThread.getHandler();
+                                                 if (decodeHandler != null) {
+                                                     Message message = decodeHandler.obtainMessage(DecodeHandler.MSG_SCANNINGIMAGE, bitmap);
+                                                     message.sendToTarget();
+                                                 }
                                              }
                                          }
-                                     }
-                                );
-
-                    } else {
-                        Toast.makeText(this, "非图片类型文件(jpg、png、gif)", Toast.LENGTH_SHORT).show();
+                                    );
+                        } else {
+                            Toast.makeText(this, "非图片类型文件(jpg、png、gif)", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(this, "没有文件读取权限", Toast.LENGTH_SHORT).show();
                     }
                     break;
             }

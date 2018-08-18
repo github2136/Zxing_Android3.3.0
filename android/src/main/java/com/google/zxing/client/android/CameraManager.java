@@ -148,7 +148,9 @@ public class CameraManager {
      * 解码失败
      */
     public void setOneShotPreviewCallback() {
-        camera.setOneShotPreviewCallback(previewCallback);
+        if (camera != null) {
+            camera.setOneShotPreviewCallback(previewCallback);
+        }
     }
 
     /**
