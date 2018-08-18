@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 public final class ViewfinderView extends View {
+    private static final long ANIMATION_DELAY = 80L;
     //空白高度比例0.0-1.0
     private double heightScale = 0.5;
     //扫描框宽度DP
@@ -23,88 +24,20 @@ public final class ViewfinderView extends View {
     private int scanTop;
     //扫描框左边距离PX
     private int scanLeft;
-    //屏幕宽度
+    //控件宽高
     private int scanWidth;
-    //屏幕高度
     private int scanHeight;
     //扫描框颜色
     private int scanColor;
     private Paint paint;
     private final int maskColor;
 
-    public int getScanWidthDp() {
-        return scanWidthDp;
-    }
-
-    public void setScanWidthDp(int scanWidthDp) {
-        this.scanWidthDp = scanWidthDp;
-    }
-
-    public int getScanHeightDp() {
-        return scanHeightDp;
-    }
-
-    public void setScanHeightDp(int scanHeightDp) {
-        this.scanHeightDp = scanHeightDp;
-    }
-
-    public int getScanWidthPx() {
-        return scanWidthPx;
-    }
-
-    public int getScanHeightPx() {
-        return scanHeightPx;
-    }
-
-    public double getHeightScale() {
-        return heightScale;
-    }
-
-    public void setHeightScale(double heightScale) {
-        this.heightScale = heightScale;
-    }
-
-    public int getScanColor() {
-        return scanColor;
-    }
-
-    public void setScanColor(int scanColor) {
-        this.scanColor = scanColor;
-    }
-
-    public int getScanTop() {
-        return scanTop;
-    }
-
-    public int getScanLeft() {
-        return scanLeft;
-    }
-
-    public int getScanWidth() {
-        return scanWidth;
-    }
-
-    public int getScanHeight() {
-        return scanHeight;
-    }
 
     public ViewfinderView(Context context, AttributeSet attrs) {
         super(context, attrs);
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         maskColor = ResourcesCompat.getColor(getResources(), R.color.viewfinder_mask, null);
         scanColor = Color.BLUE;
-        reset();
-    }
-
-    public void reset() {
-        float density = getResources().getDisplayMetrics().density;
-        if (scanWidthDp != 0) {
-            scanWidthPx = (int) (scanWidthDp * density);
-        }
-        if (scanWidthDp != 0) {
-            scanHeightPx = (int) (scanHeightDp * density);
-        }
-        invalidate();
     }
 
     @Override
@@ -113,6 +46,13 @@ public final class ViewfinderView extends View {
         int height = canvas.getHeight();
         scanWidth = width;
         scanHeight = height;
+        float density = getResources().getDisplayMetrics().density;
+        if (scanWidthDp != 0) {
+            scanWidthPx = (int) (scanWidthDp * density);
+        }
+        if (scanWidthDp != 0) {
+            scanHeightPx = (int) (scanHeightDp * density);
+        }
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(maskColor);
         int spaceWidth = (width - scanWidthPx) / 2;
@@ -150,6 +90,7 @@ public final class ViewfinderView extends View {
         int textSize = (int) (getResources().getDisplayMetrics().scaledDensity * 16);
         paint.setTextSize(textSize);
         canvas.drawText("请将二维码置于取景框内扫描", width / 2, spaceHeight + scanHeightPx + textSize + 25, paint);
+
 //        paint.setColor(Color.BLUE);
 //        canvas.drawLine((width - scanWidthPx) / 2 + 1,
 //                (height - scanHeightPx) / 2 + 1+line,
@@ -159,11 +100,95 @@ public final class ViewfinderView extends View {
 //        if (line > scanHeightPx) {
 //            line = 0;
 //        }
-//        postInvalidateDelayed(ANIMATION_DELAY,
-//                (width - scanWidthPx) / 2 + 1,
-//                (height - scanHeightPx) / 2,
-//                (width - scanWidthPx) / 2 + scanWidthPx + 1,
-//                ((height - scanHeightPx) / 2) +
-//                        scanHeightPx);
+        postInvalidateDelayed(ANIMATION_DELAY,
+                (width - scanWidthPx) / 2 + 1,
+                (height - scanHeightPx) / 2,
+                (width - scanWidthPx) / 2 + scanWidthPx + 1,
+                ((height - scanHeightPx) / 2) +
+                        scanHeightPx);
+    }
+
+    public double getHeightScale() {
+        return heightScale;
+    }
+
+    public void setHeightScale(double heightScale) {
+        this.heightScale = heightScale;
+    }
+
+    public int getScanWidthDp() {
+        return scanWidthDp;
+    }
+
+    public void setScanWidthDp(int scanWidthDp) {
+        this.scanWidthDp = scanWidthDp;
+    }
+
+    public int getScanHeightDp() {
+        return scanHeightDp;
+    }
+
+    public void setScanHeightDp(int scanHeightDp) {
+        this.scanHeightDp = scanHeightDp;
+    }
+
+    public int getScanWidthPx() {
+        return scanWidthPx;
+    }
+
+    public void setScanWidthPx(int scanWidthPx) {
+        this.scanWidthPx = scanWidthPx;
+    }
+
+    public int getScanHeightPx() {
+        return scanHeightPx;
+    }
+
+    public void setScanHeightPx(int scanHeightPx) {
+        this.scanHeightPx = scanHeightPx;
+    }
+
+    public int getScanTop() {
+        return scanTop;
+    }
+
+    public void setScanTop(int scanTop) {
+        this.scanTop = scanTop;
+    }
+
+    public int getScanLeft() {
+        return scanLeft;
+    }
+
+    public void setScanLeft(int scanLeft) {
+        this.scanLeft = scanLeft;
+    }
+
+    public int getScanWidth() {
+        return scanWidth;
+    }
+
+    public void setScanWidth(int scanWidth) {
+        this.scanWidth = scanWidth;
+    }
+
+    public int getScanHeight() {
+        return scanHeight;
+    }
+
+    public void setScanHeight(int scanHeight) {
+        this.scanHeight = scanHeight;
+    }
+
+    public int getScanColor() {
+        return scanColor;
+    }
+
+    public void setScanColor(int scanColor) {
+        this.scanColor = scanColor;
+    }
+
+    public int getMaskColor() {
+        return maskColor;
     }
 }

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
@@ -79,65 +80,15 @@ public class DecodeHandler extends Handler {
 //        hints.put(DecodeHintType.CHARACTER_SET, "");
     }
 
-    //预览图与屏幕比例
+    //预览图与控件比例
     private float sourceScale = 0;
 
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
-            case MSG_DECODE: {
-                int width = msg.arg1;//预览图片宽度
-                int height = msg.arg2;//预览图片高度
-                byte[] date = (byte[]) msg.obj;
-
-//                byte[] date   =    roate90YUVdata((byte[]) msg.obj, msg.arg1, msg.arg2);
-
-                if (sourceScale == 0) {
-                    sourceScale = height / Float.valueOf(mScanSize.x);
-                }
-                //获取预览图片，预览图片为横向显示
-      /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
-        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
-        image.compressToJpeg(new Rect(0, 0, scanningWidth, scanningHeight), 100, os);
-        byte[] tmp = os.toByteArray();
-        Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
-
-
-                //裁剪框图片
-                PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(date, width, height,
-                        (int) (mPosition.y * sourceScale),
-                        (int) (mPosition.x * sourceScale),
-                        (int) (mSize.x * sourceScale),
-                        (int) (mSize.y * sourceScale),
-                        false);
-                if (false) {
-                    //显示裁剪框图片
-                    int[] pixels = source.renderThumbnail();
-                    int width1 = source.getThumbnailWidth();
-                    int height1 = source.getThumbnailHeight();
-                    Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width1, width1, height1, Bitmap.Config.ARGB_8888);
-                    Message message = mResultHandler.obtainMessage(ZxingActivity.MSG_RESULT_IMG);
-                    message.obj = bitmap1;
-                    message.sendToTarget();
-                }
-                Result rawResult = null;
-
-                BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-
-                try {
-                    rawResult = multiFormatReader.decodeWithState(bitmap);
-                } catch (ReaderException re) {
-                } finally {
-                    multiFormatReader.reset();
-                }
-                if (rawResult != null) {
-                    Message message = mResultHandler.obtainMessage(ZxingActivity.MSG_RESULT);
-                    message.obj = rawResult.toString();
-                    message.sendToTarget();
-                    getLooper().quit();
-                }
-            }
-            break;
+            case MSG_DECODE:
+                decode((byte[]) msg.obj, msg.arg1, msg.arg2);
+                break;
             case MSG_SCANNINGIMAGE: {
                 Bitmap scanBitmap = (Bitmap) msg.obj;
                 Result result = null;
@@ -176,12 +127,95 @@ public class DecodeHandler extends Handler {
         }
     }
 
+    private void decode(byte[] data, int width, int height) {
+        Log.e("zxing","decode");
+        long start = System.currentTimeMillis();
+        if (sourceScale == 0) {
+            sourceScale = height / Float.valueOf(mScanSize.x);
+        }
+        //获取预览图片，预览图片为横向显示
+      /*  final YuvImage image = new YuvImage(data, ImageFormat.NV21, scanningWidth, scanningHeight, null);
+        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
+        image.compressToJpeg(new Rect(0, 0, scanningWidth, scanningHeight), 100, os);
+        byte[] tmp = os.toByteArray();
+        Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0, tmp.length);*/
+        PlanarYUVLuminanceSource source=null;
+//        if (isVertical(width,height)==isVertical(mScanSize.x,mScanSize.y)) {
+//        data = roate90YUVdata(data, width, height);
+//        if (data != null) {
+//            source = new PlanarYUVLuminanceSource(data, height, width,
+//                    (int) (mPosition.x * sourceScale),
+//                    (int) (mPosition.y * sourceScale),
+//                    (int) (mSize.x * sourceScale),
+//                    (int) (mSize.y * sourceScale),
+//                    false);
+//        }
+//        }else{
+            source = new PlanarYUVLuminanceSource(data, width, height,
+                    (int) (mPosition.y * sourceScale),
+                    (int) (mPosition.x * sourceScale),
+                    (int) (mSize.y * sourceScale),
+                    (int) (mSize.x * sourceScale),
+                    false);
+//        }
+
+        //裁剪框图片
+        if (false) {
+            //显示裁剪框图片
+            int[] pixels = source.renderThumbnail();
+            int width1 = source.getThumbnailWidth();
+            int height1 = source.getThumbnailHeight();
+            Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, width1, width1, height1, Bitmap.Config.ARGB_8888);
+            Message message = mResultHandler.obtainMessage(ZxingActivity.MSG_RESULT_IMG);
+            message.obj = bitmap1;
+            message.sendToTarget();
+        }
+        Result rawResult = null;
+        if (source != null) {
+            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+            try {
+                rawResult = multiFormatReader.decodeWithState(bitmap);
+            } catch (ReaderException re) {
+                // continue
+            } finally {
+                multiFormatReader.reset();
+            }
+        }
+        if (rawResult != null) {
+            long end = System.currentTimeMillis();
+            Log.d("zxing", "Found barcode in " + (end - start) + " ms");
+            Message message = mResultHandler.obtainMessage(ZxingActivity.MSG_RESULT);
+            message.obj = rawResult.toString();
+            message.sendToTarget();
+            getLooper().quit();
+        } else {
+            if (mResultHandler != null) {
+                Message message = Message.obtain(mResultHandler, ZxingActivity.MSG_DECODE_FAIL);
+                message.sendToTarget();
+            }
+        }
+    }
+
     public byte[] roate90YUVdata(byte[] yuvData, int width, int height) {
-        byte[] rotatedData = new byte[yuvData.length];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++)
-                rotatedData[x * height + height - y - 1] = yuvData[x + y * width];
+        byte[] rotatedData = null;
+        if (yuvData != null) {
+            rotatedData = new byte[yuvData.length];
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++)
+                    rotatedData[x * height + height - y - 1] = yuvData[x + y * width];
+            }
         }
         return rotatedData;
+    }
+
+    /**
+     * 是否为竖置
+     *
+     * @param width
+     * @param height
+     * @return
+     */
+    private boolean isVertical(int width, int height) {
+        return width < height;
     }
 }
