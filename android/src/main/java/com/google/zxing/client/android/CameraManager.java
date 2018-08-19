@@ -2,8 +2,10 @@ package com.google.zxing.client.android;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -11,14 +13,18 @@ import android.view.SurfaceView;
 import android.widget.FrameLayout;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by yb on 2018/8/17.
  */
 public class CameraManager {
+    private static final int MIN_PREVIEW_PIXELS = 480 * 320; // normal screen
+    private static final double MAX_ASPECT_DISTORTION = 0.15;
     private Camera camera;
     //预览尺寸
     private Camera.Size bestSize;
@@ -62,7 +68,7 @@ public class CameraManager {
             camera.setPreviewDisplay(holder);
             int width = activity.getResources().getDisplayMetrics().widthPixels;
             int height = activity.getResources().getDisplayMetrics().heightPixels;
-            bestSize = getBestPreviewSize(width, height);
+            bestSize = findBestPreviewSizeValue(width, height);//getBestPreviewSize(width, height);
 
             //预览尺寸与屏幕尺寸都为竖屏或横屏
             if (isVertical(width, height) == isVertical(bestSize.width, bestSize.height)) {
@@ -235,10 +241,10 @@ public class CameraManager {
                 int aPixels = a.height * a.width;
                 int bPixels = b.height * b.width;
                 if (bPixels < aPixels) {
-                    return -1;
+                    return 1;
                 }
                 if (bPixels > aPixels) {
-                    return 1;
+                    return -1;
                 }
                 return 0;
             }
@@ -350,5 +356,90 @@ public class CameraManager {
             }
         }
         return defaultId;
+    }
+
+
+    public Camera.Size findBestPreviewSizeValue(int width, int height) {
+        Camera.Parameters parameters = camera.getParameters();
+        List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
+        if (rawSupportedSizes == null) {
+
+            Camera.Size defaultSize = parameters.getPreviewSize();
+            if (defaultSize == null) {
+                throw new IllegalStateException("Parameters contained no preview size!");
+            }
+            return defaultSize;
+        }
+
+        // Sort by size, descending
+        List<Camera.Size> supportedPreviewSizes = new ArrayList<>(rawSupportedSizes);
+        Collections.sort(supportedPreviewSizes, new Comparator<Camera.Size>() {
+            @Override
+            public int compare(Camera.Size a, Camera.Size b) {
+                int aPixels = a.height * a.width;
+                int bPixels = b.height * b.width;
+                if (bPixels < aPixels) {
+                    return -1;
+                }
+                if (bPixels > aPixels) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+
+
+        double screenAspectRatio = height / (double) width;
+
+        // Remove sizes that are unsuitable
+        Iterator<Camera.Size> it = supportedPreviewSizes.iterator();
+        while (it.hasNext()) {
+            Camera.Size supportedPreviewSize = it.next();
+            int realWidth = supportedPreviewSize.width;
+            int realHeight = supportedPreviewSize.height;
+            if (realWidth * realHeight < MIN_PREVIEW_PIXELS) {
+                it.remove();
+                continue;
+            }
+
+            boolean isCandidatePortrait = realWidth < realHeight;
+            int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
+            int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
+            double aspectRatio = maybeFlippedWidth / (double) maybeFlippedHeight;
+            double distortion = Math.abs(aspectRatio - screenAspectRatio);
+            if (distortion > MAX_ASPECT_DISTORTION) {
+                it.remove();
+                continue;
+            }
+
+            if (maybeFlippedWidth == height && maybeFlippedHeight == width) {
+                Camera.Size size = supportedPreviewSizes.get(0);
+                size.width = realWidth;
+                size.height = realHeight;
+
+                return size;
+            }
+        }
+
+        // If no exact match, use largest preview size. This was not a great idea on older devices because
+        // of the additional computation needed. We're likely to get here on newer Android 4+ devices, where
+        // the CPU is much more powerful.
+        if (!supportedPreviewSizes.isEmpty()) {
+            Camera.Size largestPreview = supportedPreviewSizes.get(0);
+            Camera.Size size = supportedPreviewSizes.get(0);
+            size.width = largestPreview.width;
+            size.height = largestPreview.height;
+
+            return size;
+        }
+
+        // If there is nothing at all suitable, return current preview size
+        Camera.Size defaultPreview = parameters.getPreviewSize();
+        if (defaultPreview == null) {
+            throw new IllegalStateException("Parameters contained no preview size!");
+        }
+//        Point defaultSize = new Point(defaultPreview.width, defaultPreview.height);
+
+        return defaultPreview;
     }
 }
