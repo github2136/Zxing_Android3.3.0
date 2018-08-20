@@ -31,7 +31,7 @@ public final class ViewfinderView extends View {
     private int scanColor;
     private Paint paint;
     private final int maskColor;
-
+    private String text;
 
     public ViewfinderView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -89,7 +89,10 @@ public final class ViewfinderView extends View {
         paint.setTextAlign(Paint.Align.CENTER);
         int textSize = (int) (getResources().getDisplayMetrics().scaledDensity * 16);
         paint.setTextSize(textSize);
-        canvas.drawText("请将二维码置于取景框内扫描", width / 2, spaceHeight + scanHeightPx + textSize + 25, paint);
+        if (text == null) {
+            text = "请将二维码置于取景框内扫描";
+        }
+        canvas.drawText(text, width / 2, spaceHeight + scanHeightPx + textSize + 25, paint);
 
 //        paint.setColor(Color.BLUE);
 //        canvas.drawLine((width - scanWidthPx) / 2 + 1,
@@ -190,5 +193,13 @@ public final class ViewfinderView extends View {
 
     public int getMaskColor() {
         return maskColor;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }

@@ -28,6 +28,8 @@ import java.util.Set;
 public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
     public static final String ARG_RESULT = "RESULT";
     public static final String ARG_SCAN_PIC = "SCAN_PIC";
+    public static final String ARG_SCAN_FLASH = "SCAN_FLASH";
+    public static final String ARG_SCAN_TEXT = "SCAN_TEXT";
     public static final String ARG_SCAN_WIDTH_DP = "SCAN_WIDTH_DP";
     public static final String ARG_SCAN_HEIGHT_DP = "SCAN_HEIGHT_DP";
     public static final String ARG_SCAN_HEIGHT_SCALE = "SCAN_HEIGHT_SCALE";
@@ -71,6 +73,12 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         }
         if (getIntent().hasExtra(ARG_SCAN_PIC) && getIntent().getBooleanExtra(ARG_SCAN_PIC, false)) {
             ibScanning.setVisibility(View.VISIBLE);
+        }
+        if (getIntent().hasExtra(ARG_SCAN_FLASH) && getIntent().getBooleanExtra(ARG_SCAN_FLASH, false)) {
+            ibFlash.setVisibility(View.VISIBLE);
+        }
+        if (getIntent().hasExtra(ARG_SCAN_TEXT)) {
+            vView.setText(getIntent().getStringExtra(ARG_SCAN_TEXT));
         }
 
         if (getIntent().hasExtra(ARG_SCAN_COLOR)) {
