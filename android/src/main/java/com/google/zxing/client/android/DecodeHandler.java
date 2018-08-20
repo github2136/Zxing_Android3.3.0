@@ -128,7 +128,6 @@ public class DecodeHandler extends Handler {
     }
 
     private void decode(byte[] data, int width, int height) {
-        Log.e("zxing","decode");
         long start = System.currentTimeMillis();
         if (sourceScale == 0) {
             sourceScale = height / Float.valueOf(mScanSize.x);

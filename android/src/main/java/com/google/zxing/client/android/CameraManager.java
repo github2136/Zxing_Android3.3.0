@@ -359,7 +359,7 @@ public class CameraManager {
     }
 
 
-    public Camera.Size findBestPreviewSizeValue(int width, int height) {
+    private  Camera.Size findBestPreviewSizeValue(int width, int height) {
         Camera.Parameters parameters = camera.getParameters();
         List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
         if (rawSupportedSizes == null) {
