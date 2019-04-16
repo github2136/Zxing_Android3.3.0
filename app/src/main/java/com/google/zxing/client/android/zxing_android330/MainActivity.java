@@ -24,9 +24,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, ZxingActivity.class);
-                intent.putExtra(ZxingActivity.ARG_SCAN_WIDTH_DP, 200);
-                intent.putExtra(ZxingActivity.ARG_SCAN_HEIGHT_DP, 200);
+                intent.putExtra(ZxingActivity.ARG_SCAN_WIDTH_DP, 250);
+                intent.putExtra(ZxingActivity.ARG_SCAN_HEIGHT_DP, 250);
                 intent.putExtra(ZxingActivity.ARG_SCAN_PIC, true);
+                intent.putExtra(ZxingActivity.ARG_SCAN_FLASH, true);
 //                intent.putExtra(ZxingActivity.ARG_SCAN_HEIGHT_SCALE, 0d);
                 intent.putExtra(ZxingActivity.ARG_SCAN_COLOR, ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
                 startActivityForResult(intent, 1);

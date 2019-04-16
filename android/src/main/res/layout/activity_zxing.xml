@@ -39,11 +39,17 @@
                 android:visibility="gone"
                 tools:visibility="visible"/>
 
+            <android.support.v4.widget.Space
+                android:layout_width="20dp"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:id="@+id/spacer"/>
+
             <ImageButton
                 android:id="@+id/ib_scanning"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
                 android:background="@android:color/transparent"
                 android:src="@drawable/zxing_ic_scanning"
                 android:visibility="gone"

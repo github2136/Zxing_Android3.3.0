@@ -9,6 +9,7 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.widget.Space;
 import android.support.v7.app.AppCompatActivity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -42,6 +43,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     private SurfaceView surfaceView;
     private ViewfinderView vView;
     private ImageButton ibFlash, ibScanning;
+    private Space space;
     private ImageView iv;//结果图
     private Set<String> mMimeType = new HashSet<>();
     private DecodeThread mDecodeThread;
@@ -61,21 +63,27 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         vView = (ViewfinderView) findViewById(R.id.vv_view);
         ibFlash = (ImageButton) findViewById(R.id.ib_flash);
         ibScanning = (ImageButton) findViewById(R.id.ib_scanning);
+        space = (Space) findViewById(R.id.spacer);
         ibFlash.setOnClickListener(mOnClickListener);
         ibScanning.setOnClickListener(mOnClickListener);
         iv = (ImageView) findViewById(R.id.iv);
 
         if (getIntent().hasExtra(ARG_SCAN_WIDTH_DP) && getIntent().hasExtra(ARG_SCAN_HEIGHT_DP)) {
+            float density = getResources().getDisplayMetrics().density;
             int width = getIntent().getIntExtra(ARG_SCAN_WIDTH_DP, 200);
             int height = getIntent().getIntExtra(ARG_SCAN_HEIGHT_DP, 200);
-            vView.setScanWidthDp(width);
-            vView.setScanHeightDp(height);
+            vView.setScanWidthPx((int) (width * density));
+            vView.setScanHeightPx((int) (height * density));
         }
         if (getIntent().hasExtra(ARG_SCAN_PIC) && getIntent().getBooleanExtra(ARG_SCAN_PIC, false)) {
             ibScanning.setVisibility(View.VISIBLE);
         }
         if (getIntent().hasExtra(ARG_SCAN_FLASH) && getIntent().getBooleanExtra(ARG_SCAN_FLASH, false)) {
             ibFlash.setVisibility(View.VISIBLE);
+        }
+        if (ibScanning.getVisibility() == View.VISIBLE && ibFlash.getVisibility() == View.VISIBLE) {
+            //两个按钮都显示
+            space.setVisibility(View.VISIBLE);
         }
         if (getIntent().hasExtra(ARG_SCAN_TEXT)) {
             vView.setText(getIntent().getStringExtra(ARG_SCAN_TEXT));
@@ -132,8 +140,8 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         DecodeHandler decodeHandler = mDecodeThread.getHandler();
         if (decodeHandler != null) {
             Point resultSize = new Point(vView.getScanWidthPx(), vView.getScanHeightPx());
-            Point position = new Point(vView.getScanLeft(), vView.getScanTop());
-            Point scanSize = new Point(vView.getScanWidth(), vView.getScanHeight());
+            Point position = new Point((int) vView.getScanRet().left, (int) vView.getScanRet().top);
+            Point scanSize = new Point(vView.getWidth(), vView.getHeight());
             decodeHandler.setSize(resultSize, position, scanSize);
             Message message = decodeHandler.obtainMessage(DecodeHandler.MSG_DECODE, size.width, size.height, data);
             message.sendToTarget();
