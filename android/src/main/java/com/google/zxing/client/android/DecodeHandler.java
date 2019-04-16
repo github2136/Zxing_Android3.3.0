@@ -170,15 +170,13 @@ public class DecodeHandler extends Handler {
             message.sendToTarget();
         }
         Result rawResult = null;
-        if (source != null) {
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-            try {
-                rawResult = multiFormatReader.decodeWithState(bitmap);
-            } catch (ReaderException re) {
-                // continue
-            } finally {
-                multiFormatReader.reset();
-            }
+        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+        try {
+            rawResult = multiFormatReader.decodeWithState(bitmap);
+        } catch (ReaderException re) {
+            // continue
+        } finally {
+            multiFormatReader.reset();
         }
         if (rawResult != null) {
             long end = System.currentTimeMillis();

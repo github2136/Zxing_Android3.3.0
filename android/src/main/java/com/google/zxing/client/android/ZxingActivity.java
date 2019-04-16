@@ -19,9 +19,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.github2136.util.BitmapUtil;
-import com.github2136.util.FileUtil;
-
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,8 +30,10 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
     public static final String ARG_SCAN_TEXT = "SCAN_TEXT";
     public static final String ARG_SCAN_WIDTH_DP = "SCAN_WIDTH_DP";
     public static final String ARG_SCAN_HEIGHT_DP = "SCAN_HEIGHT_DP";
-    public static final String ARG_SCAN_HEIGHT_SCALE = "SCAN_HEIGHT_SCALE";
     public static final String ARG_SCAN_COLOR = "SCAN_COLOR";
+    public static final String ARG_SCAN_LINE_COLOR = "SCAN_LINE_COLOR";
+    public static final String ARG_SCAN_LINE_HEIGHT = "SCAN_LINE_HEIGHT";
+
     private static final int REQUEST_SELECT_IMG = 249;
     public static final int MSG_RESULT = 869;
     public static final int MSG_RESULT_IMG = 464;//图片结果
@@ -68,13 +67,15 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         ibScanning.setOnClickListener(mOnClickListener);
         iv = (ImageView) findViewById(R.id.iv);
 
-        if (getIntent().hasExtra(ARG_SCAN_WIDTH_DP) && getIntent().hasExtra(ARG_SCAN_HEIGHT_DP)) {
-            float density = getResources().getDisplayMetrics().density;
-            int width = getIntent().getIntExtra(ARG_SCAN_WIDTH_DP, 200);
-            int height = getIntent().getIntExtra(ARG_SCAN_HEIGHT_DP, 200);
-            vView.setScanWidthPx((int) (width * density));
-            vView.setScanHeightPx((int) (height * density));
-        }
+        float density = getResources().getDisplayMetrics().density;
+        int width = getIntent().getIntExtra(ARG_SCAN_WIDTH_DP, 250);
+        int height = getIntent().getIntExtra(ARG_SCAN_HEIGHT_DP, 250);
+        vView.setScanWidthPx((int) (width * density));
+        vView.setScanHeightPx((int) (height * density));
+        vView.setScanColor(getIntent().getIntExtra(ARG_SCAN_COLOR, Color.GREEN));
+        vView.setScanLineColor(getIntent().getIntExtra(ARG_SCAN_LINE_COLOR, Color.parseColor("#cc0000ff")));
+        vView.setScanLineHeight(getIntent().getFloatExtra(ARG_SCAN_LINE_HEIGHT, 20));
+
         if (getIntent().hasExtra(ARG_SCAN_PIC) && getIntent().getBooleanExtra(ARG_SCAN_PIC, false)) {
             ibScanning.setVisibility(View.VISIBLE);
         }
@@ -89,12 +90,6 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             vView.setText(getIntent().getStringExtra(ARG_SCAN_TEXT));
         }
 
-        if (getIntent().hasExtra(ARG_SCAN_COLOR)) {
-            vView.setScanColor(getIntent().getIntExtra(ARG_SCAN_COLOR, Color.BLUE));
-        }
-        if (getIntent().hasExtra(ARG_SCAN_HEIGHT_SCALE)) {
-            vView.setHeightScale(getIntent().getDoubleExtra(ARG_SCAN_HEIGHT_SCALE, 0.5));
-        }
         beepManager = new BeepManager(this);
         mResultHandler = new ResultHandler(this);
         cameraManager = new CameraManager(this, surfaceView, vView, this, this);
@@ -220,7 +215,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
                 case REQUEST_SELECT_IMG:
                     try {
                         String p = FileUtil.getFileAbsolutePath(this, data.getData());
-                        String suffix = FileUtil.getSuffix(p);
+                        String suffix = FileUtil.getSuffix(p).toLowerCase();
                         //获取文件后缀
                         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
                         if (mMimeType.contains(mimeTypeMap.getMimeTypeFromExtension(suffix))) {

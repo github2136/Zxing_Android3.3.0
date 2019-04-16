@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.*;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
@@ -20,6 +21,8 @@ public final class ViewfinderView extends View {
     private RectF scanRet;
     //扫描框颜色
     private int scanColor;
+    //扫描线颜色
+    private int scanLineColor;
     //扫描线位置
     private float scanLine;
     //扫描线高度
@@ -29,13 +32,17 @@ public final class ViewfinderView extends View {
     private String text;
     private Path path = new Path();
     private LinearGradient linearGradient;
+    //屏幕密度
+    float density;
 
     public ViewfinderView(Context context, AttributeSet attrs) {
         super(context, attrs);
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         path.setFillType(Path.FillType.EVEN_ODD);
         maskColor = ResourcesCompat.getColor(getResources(), R.color.viewfinder_mask, null);
-        scanColor = Color.BLUE;
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        density = dm.density;
+
         ObjectAnimator animator = ObjectAnimator.ofFloat(this, "scanLine", 0, 1);
         animator.setInterpolator(new LinearInterpolator());
         animator.setRepeatCount(ValueAnimator.INFINITE);
@@ -47,19 +54,17 @@ public final class ViewfinderView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         int left = (w - scanWidthPx) / 2;
-        int right = left + scanWidthPx;
         int top = (int) ((h - scanHeightPx) * heightScale);
+        int right = left + scanWidthPx;
         int bottom = top + scanHeightPx;
         scanRet = new RectF(left, top, right, bottom);
-        float density = getResources().getDisplayMetrics().density;
-        scanLineHeight = density * 20;
         linearGradient = new LinearGradient(scanRet.width() / 2,
                                             0,
                                             scanRet.width() / 2,
                                             scanLineHeight,
                                             new int[]{
                                                     Color.TRANSPARENT,
-                                                    Color.parseColor("#cc0000ff"),
+                                                    scanLineColor,
                                                     Color.TRANSPARENT
                                             },
                                             null,
@@ -78,8 +83,8 @@ public final class ViewfinderView extends View {
         canvas.drawPath(path, paint);
         //扫描框
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.GREEN);
-        paint.setStrokeWidth(2);
+        paint.setColor(scanColor);
+        paint.setStrokeWidth(0);
         canvas.drawRect(scanRet, paint);
 
         //提示文字
@@ -163,5 +168,21 @@ public final class ViewfinderView extends View {
     public void setScanLine(float scanLine) {
         this.scanLine = scanLine;
         invalidate();
+    }
+
+    public int getScanLineColor() {
+        return scanLineColor;
+    }
+
+    public void setScanLineColor(int scanLineColor) {
+        this.scanLineColor = scanLineColor;
+    }
+
+    public float getScanLineHeight() {
+        return scanLineHeight;
+    }
+
+    public void setScanLineHeight(float scanLineHeight) {
+        this.scanLineHeight = scanLineHeight * density;
     }
 }

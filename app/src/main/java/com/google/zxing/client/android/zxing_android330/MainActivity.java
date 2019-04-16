@@ -24,12 +24,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, ZxingActivity.class);
+                //扫描框宽度
                 intent.putExtra(ZxingActivity.ARG_SCAN_WIDTH_DP, 250);
+                //扫描框高度度
                 intent.putExtra(ZxingActivity.ARG_SCAN_HEIGHT_DP, 250);
+                //图片二维码扫描
                 intent.putExtra(ZxingActivity.ARG_SCAN_PIC, true);
+                //闪光灯
                 intent.putExtra(ZxingActivity.ARG_SCAN_FLASH, true);
-//                intent.putExtra(ZxingActivity.ARG_SCAN_HEIGHT_SCALE, 0d);
+                //扫描框颜色
                 intent.putExtra(ZxingActivity.ARG_SCAN_COLOR, ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
+                //扫描线颜色
+                intent.putExtra(ZxingActivity.ARG_SCAN_LINE_COLOR, ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
+                //扫描线高度
+                intent.putExtra(ZxingActivity.ARG_SCAN_LINE_HEIGHT, 20f);
                 startActivityForResult(intent, 1);
             }
         });
