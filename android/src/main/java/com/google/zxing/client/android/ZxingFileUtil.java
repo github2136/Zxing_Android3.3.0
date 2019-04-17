@@ -13,7 +13,7 @@ import android.text.TextUtils;
 
 import java.io.File;
 
-public class FileUtil {
+public class ZxingFileUtil {
     /**
      * 根据Uri获取文件绝对路径，解决Android4.4以上版本Uri转换
      */

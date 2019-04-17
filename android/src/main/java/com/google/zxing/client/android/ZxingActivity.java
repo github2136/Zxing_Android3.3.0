@@ -214,15 +214,15 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
             switch (requestCode) {
                 case REQUEST_SELECT_IMG:
                     try {
-                        String p = FileUtil.getFileAbsolutePath(this, data.getData());
-                        String suffix = FileUtil.getSuffix(p).toLowerCase();
+                        String p = ZxingFileUtil.getFileAbsolutePath(this, data.getData());
+                        String suffix = ZxingFileUtil.getSuffix(p).toLowerCase();
                         //获取文件后缀
                         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
                         if (mMimeType.contains(mimeTypeMap.getMimeTypeFromExtension(suffix))) {
-                            BitmapUtil
+                            ZxingBitmapUtil
                                     .getInstance(p)
                                     .limit(1080)
-                                    .get(new BitmapUtil.BitmapGetCallBack() {
+                                    .get(new ZxingBitmapUtil.BitmapGetCallBack() {
                                              @Override
                                              public void callback(Bitmap bitmap) {
                                                  DecodeHandler decodeHandler = mDecodeThread.getHandler();

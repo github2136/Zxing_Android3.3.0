@@ -8,7 +8,7 @@ import android.os.Looper;
 
 import java.io.ByteArrayOutputStream;
 
-public class BitmapUtil {
+public class ZxingBitmapUtil {
     //图片路径
     private String mFilePath;
     //旋转角度
@@ -21,12 +21,12 @@ public class BitmapUtil {
     private int mQuality = 100;
     private Handler mHandler;
 
-    private BitmapUtil() {
+    private ZxingBitmapUtil() {
         mHandler = new Handler(Looper.getMainLooper());
     }
 
-    public static BitmapUtil getInstance(String filePath) {
-        BitmapUtil mBitmapUtil = new BitmapUtil();
+    public static ZxingBitmapUtil getInstance(String filePath) {
+        ZxingBitmapUtil mBitmapUtil = new ZxingBitmapUtil();
         mBitmapUtil.init(filePath);
         return mBitmapUtil;
     }
@@ -164,7 +164,7 @@ public class BitmapUtil {
     /**
      * 宽高的最大值
      */
-    public BitmapUtil limit(int max) {
+    public ZxingBitmapUtil limit(int max) {
         mMax = max;
         return this;
     }
