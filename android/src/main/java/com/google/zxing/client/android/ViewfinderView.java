@@ -31,7 +31,9 @@ public final class ViewfinderView extends View {
     private final int maskColor;
     private String text;
     private Path path = new Path();
-    private LinearGradient linearGradient;
+    private RadialGradient radialGradient;
+    //扫描线椭圆位置
+    private RectF ovalRet;
     //屏幕密度
     float density;
 
@@ -58,17 +60,14 @@ public final class ViewfinderView extends View {
         int right = left + scanWidthPx;
         int bottom = top + scanHeightPx;
         scanRet = new RectF(left, top, right, bottom);
-        linearGradient = new LinearGradient(scanRet.width() / 2,
-                                            0,
-                                            scanRet.width() / 2,
-                                            scanLineHeight,
-                                            new int[]{
-                                                    Color.TRANSPARENT,
-                                                    scanLineColor,
-                                                    Color.TRANSPARENT
-                                            },
-                                            null,
-                                            Shader.TileMode.CLAMP);
+        radialGradient = new RadialGradient(scanRet.width() / 2,
+                                            scanLineHeight / 2,
+                                            scanRet.width(),
+                                            scanLineColor,
+                                            Color.TRANSPARENT,
+                                            Shader.TileMode.CLAMP
+        );
+        ovalRet = new RectF(0, 0, 0, 0);
     }
 
     @Override
@@ -98,18 +97,18 @@ public final class ViewfinderView extends View {
         }
         canvas.drawText(text, getWidth() / 2, scanRet.bottom + paint.getFontSpacing(), paint);
         //扫描线
-        paint.setShader(linearGradient);
+        paint.setShader(radialGradient);
         canvas.clipRect(scanRet.left,
                         scanRet.top,
                         scanRet.right,
                         scanRet.bottom);
         canvas.save();
         canvas.translate(scanRet.left, scanRet.top + scanRet.height() * scanLine - scanLineHeight / 2);
-        canvas.drawRect(0,
-                        0,
-                        scanRet.width(),
-                        scanLineHeight,
-                        paint);
+        ovalRet.left = 0;
+        ovalRet.top = 0;
+        ovalRet.right = scanRet.width();
+        ovalRet.bottom = scanLineHeight;
+        canvas.drawOval(ovalRet, paint);
         canvas.restore();
     }
 

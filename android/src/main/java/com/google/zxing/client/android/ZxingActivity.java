@@ -74,7 +74,7 @@ public class ZxingActivity extends AppCompatActivity implements SurfaceHolder.Ca
         vView.setScanHeightPx((int) (height * density));
         vView.setScanColor(getIntent().getIntExtra(ARG_SCAN_COLOR, Color.GREEN));
         vView.setScanLineColor(getIntent().getIntExtra(ARG_SCAN_LINE_COLOR, Color.parseColor("#cc0000ff")));
-        vView.setScanLineHeight(getIntent().getFloatExtra(ARG_SCAN_LINE_HEIGHT, 20));
+        vView.setScanLineHeight(getIntent().getFloatExtra(ARG_SCAN_LINE_HEIGHT, 5));
 
         if (getIntent().hasExtra(ARG_SCAN_PIC) && getIntent().getBooleanExtra(ARG_SCAN_PIC, false)) {
             ibScanning.setVisibility(View.VISIBLE);

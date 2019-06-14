@@ -35,9 +35,9 @@ public class MainActivity extends AppCompatActivity {
                 //扫描框颜色
                 intent.putExtra(ZxingActivity.ARG_SCAN_COLOR, ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
                 //扫描线颜色
-                intent.putExtra(ZxingActivity.ARG_SCAN_LINE_COLOR, ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
+                intent.putExtra(ZxingActivity.ARG_SCAN_LINE_COLOR, ResourcesCompat.getColor(getResources(), R.color.colorAccent, null));
                 //扫描线高度
-                intent.putExtra(ZxingActivity.ARG_SCAN_LINE_HEIGHT, 20f);
+                intent.putExtra(ZxingActivity.ARG_SCAN_LINE_HEIGHT, 5f);
                 startActivityForResult(intent, 1);
             }
         });
