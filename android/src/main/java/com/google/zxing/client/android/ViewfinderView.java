@@ -3,12 +3,19 @@ package com.google.zxing.client.android;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.*;
-import android.support.v4.content.res.ResourcesCompat;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RadialGradient;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+
+import androidx.core.content.res.ResourcesCompat;
 
 public final class ViewfinderView extends View {
     //空白高度比例0.0-1.0

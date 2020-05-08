@@ -2,15 +2,14 @@ package com.google.zxing.client.android;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.graphics.Point;
 import android.hardware.Camera;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
+
+import androidx.appcompat.app.AlertDialog;
 
 import java.io.IOException;
 import java.util.ArrayList;

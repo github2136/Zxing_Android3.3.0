@@ -9,15 +9,16 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.widget.Space;
-import android.support.v7.app.AppCompatActivity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Space;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
